@@ -1,6 +1,4 @@
 // @ts-check
-// Errors raised by the business layers. They carry a stable, machine-readable
-// `code`; mapping codes to HTTP statuses is the endpoint layer's job.
 
 const ERROR_CODES = /** @type {const} */ ({
   INVALID_TRANSITION: 'INVALID_TRANSITION',

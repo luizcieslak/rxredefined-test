@@ -1,7 +1,4 @@
 // @ts-check
-// Order use cases: the active queue and status changes. Orchestrates the
-// repository with the pure priority and transition rules; holds no SQL and
-// no HTTP.
 
 const { DomainError, ERROR_CODES } = require('../errors');
 const { rankOrders } = require('./priority');
@@ -70,7 +67,6 @@ function createOrdersService({ repository }) {
     },
 
     /**
-     * Applies an action (start, ready, pickup, cancel) to an order.
      * @param {number} id
      * @param {OrderAction} action
      * @returns {Promise<OrderView>}

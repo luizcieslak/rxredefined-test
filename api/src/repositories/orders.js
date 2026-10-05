@@ -1,7 +1,5 @@
 // @ts-check
-// Data access for orders. Sequelize queries, includes and filters live here
-// and nowhere else. Everything returned is a plain object, so the modules
-// above never see Sequelize instances.
+// Returns plain objects so modules never see Sequelize instances.
 
 const { Order, OrderItem, MenuItem } = require('../schema/models');
 
@@ -38,7 +36,7 @@ const WITH_ITEMS = {
 };
 
 /**
- * @param {import('sequelize').Model} row Order loaded WITH_ITEMS.
+ * @param {import('sequelize').Model} row
  * @returns {OrderRecord}
  */
 function toRecord(row) {
@@ -61,8 +59,7 @@ function toRecord(row) {
 }
 
 /**
- * Orders in any of the given statuses, with their items. Unsorted: ranking
- * is the priority module's job.
+ * Unsorted: ranking is the priority module's job.
  * @param {readonly string[]} statuses
  * @returns {Promise<OrderRecord[]>}
  */
@@ -81,8 +78,7 @@ async function findById(id) {
 }
 
 /**
- * Compare-and-set: only updates if the order is still in `fromStatus`, so two
- * concurrent requests cannot both apply a transition from the same status.
+ * Compare-and-set, so two concurrent requests cannot both leave `fromStatus`.
  * @param {number} id
  * @param {string} fromStatus
  * @param {string} toStatus

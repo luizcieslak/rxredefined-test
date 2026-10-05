@@ -1,11 +1,6 @@
 // @ts-check
 
-/** @type {{ up: Function, down: Function }} */
 module.exports = {
-  /**
-   * @param {import('sequelize').QueryInterface} queryInterface
-   * @param {typeof import('sequelize')} Sequelize
-   */
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('order_items', {
       id: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
@@ -30,7 +25,6 @@ module.exports = {
     await queryInterface.addIndex('order_items', ['order_id']);
   },
 
-  /** @param {import('sequelize').QueryInterface} queryInterface */
   async down(queryInterface) {
     await queryInterface.dropTable('order_items');
   },

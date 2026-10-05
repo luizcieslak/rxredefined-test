@@ -1,4 +1,3 @@
-// Points sequelize-cli at the schema layer.
 const path = require('node:path');
 
 module.exports = {

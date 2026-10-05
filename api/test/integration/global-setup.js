@@ -1,6 +1,5 @@
 // @ts-check
-// Fails fast with a useful message when the test database is missing or out
-// of date. It only checks; creating and migrating is `npm run db:test:setup`.
+// Only checks the test database is ready; `npm run db:test:setup` prepares it.
 
 const fs = require('node:fs');
 const path = require('node:path');

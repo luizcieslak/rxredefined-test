@@ -1,9 +1,5 @@
 // @ts-check
-// Demo data for the Kitchen Display.
-//
-// Idempotent: every run truncates the three tables (and resets their ids)
-// before inserting, so running it twice gives the same rows. All dates are
-// relative to the moment the seed runs, in UTC, so the demo never goes stale.
+// Idempotent: truncates and resets ids before inserting. Dates are relative to now (UTC).
 //
 // Expected scores at seed time (type + vip + wait + promised + complexity):
 //   Bruno   dine_in VIP, prep 72 min (complexity cap)     30+20+5+0+20  = 75   preparing
@@ -11,25 +7,18 @@
 //   Gabi    takeout, promise 10 min overdue               20+0+20+25+0  = 65   preparing
 //   Elena   delivery VIP, promised in 20 min              10+20+0+25+0  = 55   received
 //   Felipe  delivery, promised in 45 min                  10+0+10+15+10 = 45   preparing
-//   Carla   takeout, promised in 2h                       20+0+0+0+0    = 20   received
-//   Diego   takeout, promised in 3h                       20+0+0+0+0    = 20   received
 //   Lucas   dine_in, promised in 45 min (scores nothing)  30+0+5+0+0    = 35   received
 //   Karin   dine_in, no promise                           30+0+5+0+0    = 35   received
+//   Carla   takeout, promised in 2h                       20+0+0+0+0    = 20   received
+//   Diego   takeout, promised in 3h                       20+0+0+0+0    = 20   received
 //   Hugo / Iris / João: ready / picked_up / cancelled (not in the active queue)
 //
-// Carla and Diego tie on score. They share placed_at and Diego has the lower
-// id, so only promised_at can put Carla first. Both promises are > 60 minutes
-// out, so the tie holds for about an hour after seeding; after that Carla's
-// promise starts adding points and she stays ahead anyway.
-//
-// Lucas and Karin show the dine_in rule: a dine_in promise earns no points but
-// wins the tie-break over a null promise. They share placed_at and items and
-// Karin has the lower id, so only Lucas's promise can put him first. Because
-// the promise never adds points, this tie holds for as long as the demo runs.
+// Each tied pair shares placed_at and the loser has the lower id, so only
+// promised_at decides. Carla/Diego hold for ~1h (until Carla's promise scores);
+// Lucas/Karin hold indefinitely since dine_in promises never score.
 
 const TABLES = 'order_items, orders, menu_items';
 
-/** @type {Array<{ name: string, category: string, prep_time_minutes: number }>} */
 const MENU_ITEMS = [
   { name: 'Caesar Salad', category: 'starter', prep_time_minutes: 10 },
   { name: 'Garlic Bread', category: 'starter', prep_time_minutes: 6 },
@@ -45,18 +34,7 @@ const MENU_ITEMS = [
   { name: 'Espresso', category: 'drink', prep_time_minutes: 1 },
 ];
 
-/**
- * @typedef {object} SeedOrder
- * @property {string} customer_name
- * @property {'dine_in' | 'takeout' | 'delivery'} type
- * @property {boolean} is_vip
- * @property {string} status
- * @property {number} placedMinutesAgo
- * @property {number | null} promisedInMinutes Negative means overdue.
- * @property {Array<[string, number]>} items [menu item name, quantity]
- */
-
-/** @type {SeedOrder[]} Inserted in this order, so ids follow it. */
+// Inserted in this order, so ids follow it. Negative promisedInMinutes = overdue.
 const ORDERS = [
   {
     customer_name: 'Ana Souza', type: 'dine_in', is_vip: false, status: 'received',
@@ -120,29 +98,9 @@ const ORDERS = [
   },
 ];
 
-/**
- * @param {Date} now
- * @param {number} minutes
- * @returns {Date}
- */
-function addMinutes(now, minutes) {
-  return new Date(now.getTime() + minutes * 60 * 1000);
-}
+const addMinutes = (date, minutes) => new Date(date.getTime() + minutes * 60 * 1000);
 
-/**
- * bulkInsert options asking Postgres to return the inserted rows. `returning`
- * works at runtime but is missing from Sequelize's QueryOptions typings.
- * @param {import('sequelize').Transaction} transaction
- * @param {string[]} columns
- * @returns {import('sequelize').QueryOptions}
- */
-function insertReturning(transaction, columns) {
-  return /** @type {import('sequelize').QueryOptions} */ ({ transaction, returning: columns });
-}
-
-/** @type {{ up: Function, down: Function }} */
 module.exports = {
-  /** @param {import('sequelize').QueryInterface} queryInterface */
   async up(queryInterface) {
     const now = new Date();
 
@@ -151,33 +109,24 @@ module.exports = {
         transaction,
       });
 
-      const menuRows = /** @type {Array<{ id: number, name: string }>} */ (
-        /** @type {unknown} */ (
-          await queryInterface.bulkInsert(
-            'menu_items',
-            MENU_ITEMS,
-            insertReturning(transaction, ['id', 'name']),
-          )
-        )
-      );
+      const menuRows = await queryInterface.bulkInsert('menu_items', MENU_ITEMS, {
+        transaction,
+        returning: ['id', 'name'],
+      });
       const menuIdByName = new Map(menuRows.map((row) => [row.name, row.id]));
 
-      const orderRows = /** @type {Array<{ id: number }>} */ (
-        /** @type {unknown} */ (
-          await queryInterface.bulkInsert(
-            'orders',
-            ORDERS.map((order) => ({
-              customer_name: order.customer_name,
-              type: order.type,
-              is_vip: order.is_vip,
-              status: order.status,
-              placed_at: addMinutes(now, -order.placedMinutesAgo),
-              promised_at:
-                order.promisedInMinutes === null ? null : addMinutes(now, order.promisedInMinutes),
-            })),
-            insertReturning(transaction, ['id']),
-          )
-        )
+      const orderRows = await queryInterface.bulkInsert(
+        'orders',
+        ORDERS.map((order) => ({
+          customer_name: order.customer_name,
+          type: order.type,
+          is_vip: order.is_vip,
+          status: order.status,
+          placed_at: addMinutes(now, -order.placedMinutesAgo),
+          promised_at:
+            order.promisedInMinutes === null ? null : addMinutes(now, order.promisedInMinutes),
+        })),
+        { transaction, returning: ['id'] },
       );
 
       const itemRows = ORDERS.flatMap((order, index) =>
@@ -191,7 +140,6 @@ module.exports = {
     });
   },
 
-  /** @param {import('sequelize').QueryInterface} queryInterface */
   async down(queryInterface) {
     await queryInterface.sequelize.query(`TRUNCATE ${TABLES} RESTART IDENTITY CASCADE`);
   },

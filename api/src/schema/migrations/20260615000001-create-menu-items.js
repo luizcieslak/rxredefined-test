@@ -1,13 +1,7 @@
 // @ts-check
-// Allowed values are written out literally: a migration is a snapshot of the
-// schema at that point in time and must not change when app constants do.
+// Values are written out literally: a migration is a snapshot and must not follow app constants.
 
-/** @type {{ up: Function, down: Function }} */
 module.exports = {
-  /**
-   * @param {import('sequelize').QueryInterface} queryInterface
-   * @param {typeof import('sequelize')} Sequelize
-   */
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('menu_items', {
       id: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
@@ -24,7 +18,6 @@ module.exports = {
     `);
   },
 
-  /** @param {import('sequelize').QueryInterface} queryInterface */
   async down(queryInterface) {
     await queryInterface.dropTable('menu_items');
   },

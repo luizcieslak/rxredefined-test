@@ -1,12 +1,6 @@
 // @ts-check
-// Priority scoring for the kitchen queue.
-//
-// Pure module: no I/O, no Sequelize, no clock. Every function that depends on
-// time receives `now` explicitly, so the running app passes the real clock and
-// tests pass a frozen one.
-//
-// Timestamps may be Date instances or ISO strings; all comparisons are done on
-// epoch milliseconds, which are UTC by definition.
+// Pure: time-dependent functions take `now` as an argument, never the clock.
+// Timestamps are compared as epoch ms, which is UTC.
 
 /** @typedef {'dine_in' | 'takeout' | 'delivery'} OrderType */
 
@@ -19,7 +13,6 @@
  */
 
 /**
- * Plain order shape the module works on, mapped by the caller from the database.
  * @typedef {object} ScorableOrder
  * @property {number} id
  * @property {OrderType} type
@@ -29,10 +22,7 @@
  * @property {ScorableItem[]} items
  */
 
-/**
- * An order after scoring. `score` is required by the comparator.
- * @typedef {ScorableOrder & { score: number }} ScoredOrder
- */
+/** @typedef {ScorableOrder & { score: number }} ScoredOrder */
 
 /**
  * @typedef {object} ScoreBreakdown
@@ -69,8 +59,7 @@
 const MS_PER_MINUTE = 60 * 1000;
 
 /**
- * Every ranking knob lives here. A product change to ranking should only need
- * to touch this object (and the matching tests).
+ * Every ranking knob lives here; a ranking change should only touch this object.
  * @type {PriorityRules}
  */
 const PRIORITY_RULES = {
@@ -116,8 +105,7 @@ function steppedPoints(amount, { minutesPerStep, pointsPerStep, maxPoints }) {
 }
 
 /**
- * Whole minutes elapsed since placed_at, floored. Clamped at 0 so an order
- * whose placed_at is slightly in the future (clock skew) never goes negative.
+ * Whole minutes since placed_at, floored. Clamped at 0 for clock skew.
  * @param {Pick<ScorableOrder, 'placed_at'>} order
  * @param {Timestamp} now
  * @returns {number}
@@ -128,7 +116,6 @@ function minutesWaiting(order, now) {
 }
 
 /**
- * Sum of prep_time_minutes * quantity across all items.
  * @param {Pick<ScorableOrder, 'items'>} order
  * @returns {number}
  */
@@ -137,8 +124,7 @@ function totalPrepMinutes(order) {
 }
 
 /**
- * The promise that earns points, as epoch ms, or null. Only types listed in
- * PRIORITY_RULES.promised.appliesTo score a promise (dine_in does not).
+ * Promise that earns points: only for types in PRIORITY_RULES.promised.appliesTo.
  * @param {Pick<ScorableOrder, 'type' | 'promised_at'>} order
  * @returns {number | null}
  */
@@ -148,9 +134,8 @@ function scorablePromisedAt(order) {
 }
 
 /**
- * The promise used to break score ties, as epoch ms, or null. Any type counts:
- * a dine_in promise is an exception someone set on purpose, so it earns no
- * points but still ranks the order ahead of a tied order with no promise.
+ * Promise used to break ties, for any type: a dine_in promise earns no points
+ * but still ranks ahead of a tied order with no promise.
  * @param {Pick<ScorableOrder, 'promised_at'>} order
  * @returns {number | null}
  */
@@ -187,7 +172,7 @@ function promisedPoints(order, now) {
 }
 
 /**
- * Per-component points plus total. Useful for explaining a score.
+ * Per-component points plus total.
  * @param {ScorableOrder} order
  * @param {Timestamp} now
  * @returns {ScoreBreakdown}
@@ -214,8 +199,7 @@ function scoreOrder(order, now) {
 }
 
 /**
- * Comparator for orders that already carry a `score`:
- * score desc, then promised_at asc (null last, any order type), placed_at asc, id asc.
+ * score desc, then promised_at asc (null last, any type), placed_at asc, id asc.
  * @param {ScoredOrder} a
  * @param {ScoredOrder} b
  * @returns {number}
@@ -238,8 +222,7 @@ function compareByPriority(a, b) {
 }
 
 /**
- * Returns new objects with `score` and `minutes_waiting` attached, sorted by
- * priority. Does not mutate the input.
+ * New objects with `score` and `minutes_waiting`, sorted. Input is not mutated.
  * @template {ScorableOrder} T
  * @param {T[]} orders
  * @param {Timestamp} now

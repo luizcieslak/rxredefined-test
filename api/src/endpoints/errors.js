@@ -1,6 +1,5 @@
 // @ts-check
-// Turns errors into `{ error: { code, message, details? } }` responses.
-// The HTTP status for each error code is decided here and only here.
+// The only place that maps error codes to HTTP statuses.
 
 const { DomainError } = require('../errors');
 

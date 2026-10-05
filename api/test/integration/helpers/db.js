@@ -1,6 +1,4 @@
 // @ts-check
-// Helpers shared by integration tests: reset tables between tests and insert
-// small fixtures. Tests never use the demo seed.
 
 const { sequelize, MenuItem, Order, OrderItem } = require('../../../src/schema/models');
 
@@ -36,7 +34,6 @@ async function createMenuItem(overrides = {}) {
 }
 
 /**
- * Creates an order and its items in one go.
  * @param {Record<string, unknown>} [overrides] Order columns.
  * @param {Array<{ menu_item_id: number, quantity: number }>} [items]
  */

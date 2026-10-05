@@ -1,6 +1,4 @@
 // @ts-check
-// HTTP endpoints for orders. Thin: read the request, call the module, write
-// the response. No business rules here.
 
 const express = require('express');
 const { DomainError, ERROR_CODES } = require('../errors');
@@ -10,9 +8,9 @@ const { DomainError, ERROR_CODES } = require('../errors');
 /** @typedef {{ now: () => Date }} Clock */
 
 /**
- * @param {string} raw `:id` route param.
+ * @param {string} raw
  * @returns {number}
- * @throws {DomainError} INVALID_ORDER_ID unless it is a positive integer.
+ * @throws {DomainError} INVALID_ORDER_ID unless a positive 32-bit integer.
  */
 function parseOrderId(raw) {
   if (!/^[1-9]\d{0,9}$/.test(raw) || Number(raw) > 2147483647) {

@@ -1,6 +1,5 @@
 // @ts-check
-// Builds the Express app. Dependencies are injectable so tests can pass a
-// frozen clock; the running server uses the real one.
+// Dependencies are injectable so tests can pass a frozen clock.
 
 const express = require('express');
 const repository = require('./repositories/orders');

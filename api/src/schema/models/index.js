@@ -1,12 +1,10 @@
 // @ts-check
-// Sequelize connection and models. Schema only: no queries live here.
-// Tables are created by migrations; sync() is never called.
+// Tables come from migrations; sync() is never called.
 
 const { Sequelize, DataTypes } = require('sequelize');
 const config = require('../config');
 
-const env = process.env.NODE_ENV || 'development';
-const { url, ...options } = config[env];
+const { url, ...options } = process.env.NODE_ENV === 'test' ? config.test : config.development;
 
 const sequelize = new Sequelize(url, options);
 

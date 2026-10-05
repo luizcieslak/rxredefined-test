@@ -1,7 +1,4 @@
-// Two projects so unit tests never need Postgres:
-//   unit         test/*.test.js              pure modules, no database
-//   integration  test/integration/**/*.test.js  real Postgres (kitchen_queue_test)
-// The integration database is created by `npm run db:test:setup`, not by Jest.
+// unit: no database. integration: real Postgres, prepared by `npm run db:test:setup`.
 
 /** @type {import('jest').Config} */
 module.exports = {
