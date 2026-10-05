@@ -1,0 +1,9 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: kitchen_queue
+      POSTGRES_PASSWORD: kitchen_queue
+      POSTGRES_DB: kitchen_queue
+    ports:
+      - "5433:5432"
