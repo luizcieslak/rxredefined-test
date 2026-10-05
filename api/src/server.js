@@ -1,3 +1,4 @@
+// @ts-check
 const { createApp } = require('./app');
 
 const port = Number(process.env.PORT) || 4000;
