@@ -12,7 +12,10 @@
     "db:migrate": "sequelize-cli db:migrate",
     "db:seed": "sequelize-cli db:seed:all",
     "db:setup": "npm run db:migrate && npm run db:seed",
-    "test": "jest --passWithNoTests"
+    "db:test:setup": "sequelize-cli db:drop --env test && sequelize-cli db:create --env test && sequelize-cli db:migrate --env test",
+    "test": "jest --runInBand",
+    "test:unit": "jest --selectProjects unit",
+    "test:integration": "jest --runInBand --selectProjects integration"
   },
   "dependencies": {
     "express": "^5.2.1",

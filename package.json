@@ -11,8 +11,11 @@
   "scripts": {
     "dev": "concurrently -n api,web -c blue,magenta \"npm run dev -w api\" \"npm run dev -w web\"",
     "db:setup": "npm run db:setup -w api",
+    "db:test:setup": "npm run db:test:setup -w api",
     "build": "npm run build -w web",
-    "test": "npm test -w api"
+    "test": "npm test -w api",
+    "test:unit": "npm run test:unit -w api",
+    "test:integration": "npm run test:integration -w api"
   },
   "devDependencies": {
     "concurrently": "^10.0.5"
