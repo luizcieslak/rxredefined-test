@@ -35,7 +35,7 @@ export function useQueue(filter: QueueFilter) {
   }, [filter]);
 
   useEffect(() => {
-    void reload();
+    reload();
     return () => inFlight.current?.abort();
   }, [reload]);
 
@@ -47,11 +47,15 @@ export function useQueue(filter: QueueFilter) {
         await applyOrderAction(orderId, action);
       } catch (err) {
         setError(toApiError(err));
+      }
+      // Reload either way: a rejected action usually means the screen was stale.
+      // The order stays pending until the reload lands, so the filter cannot
+      // change between the mutation and the table catching up.
+      try {
+        await reload();
       } finally {
         setPendingOrderId(null);
       }
-      // Reload either way: a rejected action usually means the screen was stale.
-      await reload();
     },
     [reload],
   );

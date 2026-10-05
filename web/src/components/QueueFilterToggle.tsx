@@ -11,14 +11,16 @@ const OPTIONS: Array<{ value: QueueFilter; label: string }> = [
 interface Props {
   value: QueueFilter;
   onChange: (value: QueueFilter) => void;
+  disabled?: boolean;
 }
 
-export function QueueFilterToggle({ value, onChange }: Props) {
+export function QueueFilterToggle({ value, onChange, disabled = false }: Props) {
   return (
     <ToggleButtonGroup
       size="small"
       exclusive
       value={value}
+      disabled={disabled}
       // Clicking the selected option passes null; keep the current filter.
       onChange={(_event, next: QueueFilter | null) => next && onChange(next)}
       aria-label="Queue filter"

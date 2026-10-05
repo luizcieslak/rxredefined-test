@@ -14,6 +14,7 @@ import type { QueueFilter } from './types';
 export default function App() {
   const [filter, setFilter] = useState<QueueFilter>('active');
   const { orders, loading, error, pendingOrderId, reload, runAction, clearError } = useQueue(filter);
+  const actionPending = pendingOrderId !== null;
 
   return (
     <Box component="main" sx={{ p: 2 }}>
@@ -23,13 +24,14 @@ export default function App() {
         </Typography>
         <QueueFilterToggle
           value={filter}
+          disabled={actionPending}
           onChange={(next) => {
             // An error from the previous view no longer applies.
             clearError();
             setFilter(next);
           }}
         />
-        <Button size="small" variant="outlined" onClick={() => void reload()} disabled={loading}>
+        <Button size="small" variant="outlined" onClick={() => reload()} disabled={loading || actionPending}>
           Refresh
         </Button>
       </Stack>
@@ -45,7 +47,7 @@ export default function App() {
         <QueueTable
           orders={orders}
           pendingOrderId={pendingOrderId}
-          onAction={(orderId, action) => void runAction(orderId, action)}
+          onAction={(orderId, action) => runAction(orderId, action)}
         />
       </Paper>
     </Box>
