@@ -215,11 +215,37 @@ describe('ranking and tie-break', () => {
     expect(rankOrders([b, a], NOW).map((o) => o.id)).toEqual([3, 7]);
   });
 
-  test('dine_in promised_at is ignored in the tie-break too', () => {
-    // A dine_in promise must not jump ahead of an identical order without one.
-    const withPromise = makeOrder({ id: 2, promised_at: minutesFromNow(120) });
-    const withoutPromise = makeOrder({ id: 1 });
-    expect(rankOrders([withPromise, withoutPromise], NOW).map((o) => o.id)).toEqual([1, 2]);
+  test('dine_in promised_at scores nothing but wins the tie-break over a null promise', () => {
+    // The promised order is placed later and has the higher id, so only the
+    // promise can rank it first. Its 15-minute promise adds no points.
+    const noPromisePlacedEarlier = makeOrder({ id: 1, placed_at: minutesAgo(8) });
+    const promisedPlacedLater = makeOrder({
+      id: 2,
+      placed_at: minutesAgo(2),
+      promised_at: minutesFromNow(15),
+    });
+    const ranked = rankOrders([noPromisePlacedEarlier, promisedPlacedLater], NOW);
+    expect(ranked.map((o) => [o.id, o.score])).toEqual([[2, 30], [1, 30]]);
+  });
+
+  test('two tied dine_in orders with promises: earlier promise first', () => {
+    const later = makeOrder({ id: 1, promised_at: minutesFromNow(90) });
+    const earlier = makeOrder({ id: 2, promised_at: minutesFromNow(45) });
+    expect(rankOrders([later, earlier], NOW).map((o) => o.id)).toEqual([2, 1]);
+  });
+
+  test('tie across types: an earlier dine_in promise outranks a later takeout promise', () => {
+    // takeout: 20 type + 10 wait (20 min) + 0 promised (120 min away) = 30
+    // dine_in: 30 type + 0 wait + 0 (dine_in promises score nothing) = 30
+    const takeout = makeOrder({
+      id: 1,
+      type: 'takeout',
+      placed_at: minutesAgo(20),
+      promised_at: minutesFromNow(120),
+    });
+    const dineIn = makeOrder({ id: 2, placed_at: NOW, promised_at: minutesFromNow(30) });
+    const ranked = rankOrders([takeout, dineIn], NOW);
+    expect(ranked.map((o) => [o.id, o.score])).toEqual([[2, 30], [1, 30]]);
   });
 
   test('a delivery VIP with a tight promise beats a dine_in non-VIP', () => {

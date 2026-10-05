@@ -13,12 +13,19 @@
 //   Felipe  delivery, promised in 45 min                  10+0+10+15+10 = 45   preparing
 //   Carla   takeout, promised in 2h                       20+0+0+0+0    = 20   received
 //   Diego   takeout, promised in 3h                       20+0+0+0+0    = 20   received
+//   Lucas   dine_in, promised in 45 min (scores nothing)  30+0+5+0+0    = 35   received
+//   Karin   dine_in, no promise                           30+0+5+0+0    = 35   received
 //   Hugo / Iris / João: ready / picked_up / cancelled (not in the active queue)
 //
 // Carla and Diego tie on score. They share placed_at and Diego has the lower
 // id, so only promised_at can put Carla first. Both promises are > 60 minutes
 // out, so the tie holds for about an hour after seeding; after that Carla's
 // promise starts adding points and she stays ahead anyway.
+//
+// Lucas and Karin show the dine_in rule: a dine_in promise earns no points but
+// wins the tie-break over a null promise. They share placed_at and items and
+// Karin has the lower id, so only Lucas's promise can put him first. Because
+// the promise never adds points, this tie holds for as long as the demo runs.
 
 const TABLES = 'order_items, orders, menu_items';
 
@@ -100,6 +107,16 @@ const ORDERS = [
     customer_name: 'João Ribeiro', type: 'delivery', is_vip: true, status: 'cancelled',
     placedMinutesAgo: 50, promisedInMinutes: -5,
     items: [['Chicken Burger', 1]],
+  },
+  {
+    customer_name: 'Karin Duarte', type: 'dine_in', is_vip: false, status: 'received',
+    placedMinutesAgo: 15, promisedInMinutes: null,
+    items: [['Tomato Soup', 1]],
+  },
+  {
+    customer_name: 'Lucas Ferreira', type: 'dine_in', is_vip: false, status: 'received',
+    placedMinutesAgo: 15, promisedInMinutes: 45,
+    items: [['Tomato Soup', 1]],
   },
 ];
 

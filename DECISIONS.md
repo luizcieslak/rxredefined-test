@@ -3,7 +3,7 @@
 - [ ] **JS API requirement is enriched with JSDoc typings and ts-check annotations.**
 - [ ] **Bucket boundaries**: Treat the 0-30 and 31-60 as both inclusive on the right side of the interval so there is no gaps between them. Use ms-precise `minutesUntil ≤ 30 → 25`, `≤ 60 → 15`, otherwise 0. Exactly 30 and exactly 60 are both inclusive.
 - [ ] **Overdue `promised_at`**: If timestamp is in the past, score it 25, the most urgent bucket.
-- [ ] **`promised_at` on dine_in.** The spec says it's "relevant for delivery and takeout", so we are ignoring it for dine_in.
+- [ ] **`promised_at` on dine_in.** Scores 0 points (the spec scores promises only for delivery and takeout), but a dine_in promise still counts in the tie-break, ahead of orders with no promise.
 - [ ] **`placed_at` in the future** (clock skew): Clamp `minutes_waiting` to ≥ 0.
 - [ ] **Rounding.** Wait time uses floor of whole minutes, `total_prep` is always an integer sum.
 - [ ] **Explicit state machine**: No conditionals should be scattered throughout the code. The module receives the current status and the next and rejects everything not in the map. Endpoints `/start`, `/ready`, `/pickup` e `/cancel` can only map the action to its corresponding destination status.

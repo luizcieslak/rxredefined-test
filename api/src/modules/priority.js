@@ -78,7 +78,8 @@ const PRIORITY_RULES = {
   vipPoints: 20,
   waitTime: { minutesPerStep: 10, pointsPerStep: 5, maxPoints: 40 },
   promised: {
-    // promised_at only counts for these types (see DECISIONS.md).
+    // promised_at only scores points for these types. The tie-break uses
+    // promised_at for every type (see DECISIONS.md).
     appliesTo: ['takeout', 'delivery'],
     // Checked in order; upper bounds are inclusive. Overdue promises
     // (negative minutes until) fall into the first bucket.
@@ -136,14 +137,25 @@ function totalPrepMinutes(order) {
 }
 
 /**
- * The promise that ranking should consider, as epoch ms, or null.
- * Used by both the score and the tie-break so they never disagree.
+ * The promise that earns points, as epoch ms, or null. Only types listed in
+ * PRIORITY_RULES.promised.appliesTo score a promise (dine_in does not).
  * @param {Pick<ScorableOrder, 'type' | 'promised_at'>} order
  * @returns {number | null}
  */
-function effectivePromisedAt(order) {
-  if (order.promised_at == null) return null;
+function scorablePromisedAt(order) {
   if (!PRIORITY_RULES.promised.appliesTo.includes(order.type)) return null;
+  return tieBreakPromisedAt(order);
+}
+
+/**
+ * The promise used to break score ties, as epoch ms, or null. Any type counts:
+ * a dine_in promise is an exception someone set on purpose, so it earns no
+ * points but still ranks the order ahead of a tied order with no promise.
+ * @param {Pick<ScorableOrder, 'promised_at'>} order
+ * @returns {number | null}
+ */
+function tieBreakPromisedAt(order) {
+  if (order.promised_at == null) return null;
   return toMillis(order.promised_at, 'promised_at');
 }
 
@@ -166,7 +178,7 @@ function typePoints(order) {
  * @returns {number}
  */
 function promisedPoints(order, now) {
-  const promisedAt = effectivePromisedAt(order);
+  const promisedAt = scorablePromisedAt(order);
   if (promisedAt === null) return 0;
   // Not floored: 30m30s away is beyond 30 minutes and falls in the next bucket.
   const minutesUntil = (promisedAt - toMillis(now, 'now')) / MS_PER_MINUTE;
@@ -203,7 +215,7 @@ function scoreOrder(order, now) {
 
 /**
  * Comparator for orders that already carry a `score`:
- * score desc, then promised_at asc (null last), placed_at asc, id asc.
+ * score desc, then promised_at asc (null last, any order type), placed_at asc, id asc.
  * @param {ScoredOrder} a
  * @param {ScoredOrder} b
  * @returns {number}
@@ -211,8 +223,8 @@ function scoreOrder(order, now) {
 function compareByPriority(a, b) {
   if (a.score !== b.score) return b.score - a.score;
 
-  const aPromised = effectivePromisedAt(a);
-  const bPromised = effectivePromisedAt(b);
+  const aPromised = tieBreakPromisedAt(a);
+  const bPromised = tieBreakPromisedAt(b);
   if (aPromised !== bPromised) {
     if (aPromised === null) return 1;
     if (bPromised === null) return -1;
