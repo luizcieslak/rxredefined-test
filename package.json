@@ -10,6 +10,7 @@
   },
   "scripts": {
     "dev": "concurrently -n api,web -c blue,magenta \"npm run dev -w api\" \"npm run dev -w web\"",
+    "db:setup": "npm run db:setup -w api",
     "build": "npm run build -w web",
     "test": "npm test -w api"
   },

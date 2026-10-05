@@ -1,0 +1,9 @@
+// Points sequelize-cli at the schema layer.
+const path = require('node:path');
+
+module.exports = {
+  config: path.resolve(__dirname, 'src/schema/config.js'),
+  'models-path': path.resolve(__dirname, 'src/schema/models'),
+  'migrations-path': path.resolve(__dirname, 'src/schema/migrations'),
+  'seeders-path': path.resolve(__dirname, 'src/schema/seeders'),
+};
