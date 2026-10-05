@@ -13,9 +13,10 @@
     "db:setup": "npm run db:setup -w api",
     "db:test:setup": "npm run db:test:setup -w api",
     "build": "npm run build -w web",
-    "test": "npm test -w api",
-    "test:unit": "npm run test:unit -w api",
-    "test:integration": "npm run test:integration -w api"
+    "test": "npm test -w api && npm test -w web",
+    "test:unit": "npm run test:unit -w api && npm test -w web",
+    "test:integration": "npm run test:integration -w api",
+    "test:web": "npm test -w web"
   },
   "devDependencies": {
     "concurrently": "^10.0.5"
