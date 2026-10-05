@@ -1,3 +1,4 @@
+// @ts-check
 // Priority scoring for the kitchen queue.
 //
 // Pure module: no I/O, no Sequelize, no clock. Every function that depends on

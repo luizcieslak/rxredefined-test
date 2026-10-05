@@ -1,6 +1,6 @@
 # Decisions
 
-- [ ] **No `concurrently` lib install for local dev commands: The assessment explicity asks to **not use external libraries**, so a simpler command `npm run dev -w api & npm run dev -w web` was chosen aware of the trade-offs.
+- [ ] **JS API requirement is enriched with JSDoc typings and ts-check annotations.**
 - [ ] **Bucket boundaries**: Treat the 0-30 and 31-60 as both inclusive on the right side of the interval so there is no gaps between them. Use ms-precise `minutesUntil ≤ 30 → 25`, `≤ 60 → 15`, otherwise 0. Exactly 30 and exactly 60 are both inclusive.
 - [ ] **Overdue `promised_at`**: If timestamp is in the past, score it 25, the most urgent bucket.
 - [ ] **`promised_at` on dine_in.** The spec says it's "relevant for delivery and takeout", so we are ignoring it for dine_in.
